@@ -7,7 +7,8 @@ const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 // Multer will be used for parsing multipart forms, using memory storage for blob uploads
-const multer = require('multer')({ storage: multer.memoryStorage() });
+const multerLib = require('multer'); // Require the library
+const multer = multerLib({ storage: multerLib.memoryStorage() }); // Instantiate it
 const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
 const bcrypt = require('bcrypt');
