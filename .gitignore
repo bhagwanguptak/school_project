@@ -1,0 +1,6 @@
+node_modules/
+*.log
+my-secret-config.json
+build/
+variables.env
+sessions.db
