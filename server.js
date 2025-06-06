@@ -41,7 +41,7 @@ console.log(`Current NODE_ENV: ${process.env.NODE_ENV}`);
 
 // --- Vercel Postgres Database Setup ---
 const db = new Pool({
-  connectionString: process.env.POSTGRES_URL, // Provided by Vercel
+  connectionString: `${process.env.POSTGRES_URL}?sslmode=require`,// Provided by Vercel
   ssl: {
     rejectUnauthorized: false // Required for Vercel Postgres connections
   }
