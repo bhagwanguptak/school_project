@@ -4,6 +4,8 @@
 const dotenv = require('dotenv');
 const path = require('path');
 const express = require('express');
+//const bodyParser = require('body-parser');
+// server.js, line 18
 const cors = require('cors');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
@@ -11,8 +13,9 @@ const nodemailer = require('nodemailer');
 
 // --- New Database & Session Dependencies ---
 const { Pool } = require('pg'); // For Vercel Postgres
-const { createClient } = require('redis'); // For Vercel KV (REFINED: removed unnecessary alias)
-const RedisStore = require('connect-redis'); // CORRECTED: Removed .default
+const { createClient: createRedisClient } = require('redis'); // For Vercel KV
+// server.js, line 30
+const RedisStore = require("connect-redis").default;// Session store adapter
 
 // --- File Upload & Blob Storage Dependencies ---
 const multerLib = require('multer');
@@ -50,7 +53,7 @@ db.on('connect', () => console.log('Connected to Vercel Postgres database.'));
 db.on('error', (err) => console.error('Postgres Pool Error:', err));
 
 // --- Vercel KV (Redis) Session Store Setup ---
-const redisClient = createClient({ // REFINED: Using createClient directly
+const redisClient = createRedisClient({
     url: process.env.KV_URL // Provided by Vercel
 });
 redisClient.on('error', err => console.error('Redis Client Error:', err));
@@ -115,6 +118,7 @@ async function initializeDatabase() {
         }
     } catch (err) {
         console.error("Error initializing Postgres database tables:", err.message);
+        // If this fails, the app might not work, so we log a severe error.
     }
 }
 initializeDatabase();
@@ -259,6 +263,7 @@ const generateBlobFilename = (originalName) => {
 };
 
 // --- Specific Image Upload API Endpoints (USING VERCEL BLOB) ---
+// These routes do not need changes as they don't interact with the SQL database.
 const createUploadHandler = (entityName, formDataKey) => async (req, res) => {
     if (!req.file) return res.status(400).json({ message: `No ${entityName} file provided.` });
     try {
@@ -295,11 +300,13 @@ app.post('/api/carousel', checkAuth, multer.single('carouselImage'), async (req,
     const originalFileName = req.file.originalname;
 
     try {
+        // 1. Upload to Vercel Blob
         const blobFilename = generateBlobFilename(req.file.originalname);
         const blob = await put(blobFilename, req.file.buffer, { access: 'public', contentType: req.file.mimetype });
         const imageUrl = blob.url;
         console.log(`Carousel image uploaded to Vercel Blob: ${imageUrl}`);
 
+        // 2. Save metadata to Postgres
         const sql = `INSERT INTO carousel_images (image_url, link_url, alt_text, file_name, display_order) VALUES ($1, $2, $3, $4, (SELECT COALESCE(MAX(display_order), 0) + 1 FROM carousel_images)) RETURNING *`;
         const result = await db.query(sql, [imageUrl, linkURL || null, altText || 'Carousel Image', originalFileName]);
 
@@ -314,10 +321,11 @@ app.delete('/api/carousel/:id', checkAuth, async (req, res) => {
     const imageId = parseInt(req.params.id, 10);
     if (isNaN(imageId)) return res.status(400).json({ error: 'Invalid image ID.' });
 
-    const client = await db.connect();
+    const client = await db.connect(); // Use transaction for multi-step operation
     try {
         await client.query('BEGIN');
 
+        // 1. Find the image URL in the database
         const findResult = await client.query('SELECT image_url FROM carousel_images WHERE id = $1', [imageId]);
         if (findResult.rows.length === 0) {
             await client.query('ROLLBACK');
@@ -325,21 +333,23 @@ app.delete('/api/carousel/:id', checkAuth, async (req, res) => {
         }
         const imageUrlToDelete = findResult.rows[0].image_url;
 
+        // 2. Delete the record from the database
         const deleteResult = await client.query('DELETE FROM carousel_images WHERE id = $1', [imageId]);
         if (deleteResult.rowCount === 0) {
            throw new Error('Image found but could not be deleted from database.');
         }
 
+        // 3. Attempt to delete from Vercel Blob
         if (imageUrlToDelete && imageUrlToDelete.startsWith('http')) {
             try {
-                await head(imageUrlToDelete);
+                await head(imageUrlToDelete); // Check if blob exists
                 await del(imageUrlToDelete);
                 console.log(`Successfully deleted from Vercel Blob: ${imageUrlToDelete}`);
             } catch (blobError) {
                 if (blobError.status === 404) {
                     console.warn(`Blob not found on Vercel Blob (already deleted?): ${imageUrlToDelete}`);
                 } else {
-                    throw blobError;
+                    throw blobError; // A real blob error occurred, re-throw to rollback DB
                 }
             }
         }
@@ -429,4 +439,5 @@ app.listen(SERVER_PORT, () => {
     }
 });
 
-module.exports = app;
+// No need for a graceful shutdown process for the DB pool on Vercel,
+// as the serverless function environment is managed automatically.
