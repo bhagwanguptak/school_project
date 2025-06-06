@@ -8,6 +8,7 @@ const cors = require('cors');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
+const { URL } = require('url');
 
 // --- New Database & Session Dependencies ---
 const { Pool } = require('pg'); // For Vercel Postgres
@@ -40,10 +41,26 @@ if (envConfig.error) {
 console.log(`Current NODE_ENV: ${process.env.NODE_ENV}`);
 
 // --- Vercel Postgres Database Setup ---
+// --- Vercel Postgres Database Setup ---
+// THIS IS THE NEW, BULLETPROOF CONFIGURATION
+let dbConnectionString = process.env.POSTGRES_URL;
+try {
+  // Defensively remove any conflicting sslmode query parameter
+  const dbUrl = new URL(dbConnectionString);
+  if (dbUrl.searchParams.has('sslmode')) {
+    dbUrl.searchParams.delete('sslmode');
+    dbConnectionString = dbUrl.toString();
+    console.log('Removed conflicting sslmode from POSTGRES_URL.');
+  }
+} catch (e) {
+  console.error('Could not parse POSTGRES_URL, using it as is.', e.message);
+}
+
 const db = new Pool({
-  connectionString: process.env.POSTGRES_URL,// Provided by Vercel
+  connectionString: dbConnectionString,
   ssl: {
-    rejectUnauthorized: false // Required for Vercel Postgres connections
+    // This is the definitive instruction for Vercel's environment
+    rejectUnauthorized: false
   }
 });
 db.on('connect', () => console.log('Connected to Vercel Postgres database.'));
