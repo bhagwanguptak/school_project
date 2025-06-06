@@ -13,7 +13,7 @@ const nodemailer = require('nodemailer');
 // --- New Database & Session Dependencies ---
 const { Pool } = require('pg'); // For Vercel Postgres
 const { createClient: createRedisClient } = require('redis'); // For Vercel KV
-const RedisStore = require("connect-redis").default; // Session store adapter
+const RedisStore = require("connect-redis"); // Session store adapter
 
 // --- File Upload & Blob Storage Dependencies ---
 const multerLib = require('multer');
