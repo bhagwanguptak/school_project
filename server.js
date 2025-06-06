@@ -12,7 +12,7 @@ const nodemailer = require('nodemailer');
 // --- New Database & Session Dependencies ---
 const { Pool } = require('pg'); // For Vercel Postgres
 const { createClient } = require('redis'); // For Vercel KV (REFINED: removed unnecessary alias)
-const RedisStore = require('connect-redis'); // CORRECTED: Removed .default
+const RedisStore = require('connect-redis').default; // CORRECTED: Removed .default
 
 // --- File Upload & Blob Storage Dependencies ---
 const multerLib = require('multer');
