@@ -5,7 +5,8 @@ const dotenv = require('dotenv');
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = 'cors';
+// server.js, line 18
+const cors = require('cors');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
@@ -13,7 +14,8 @@ const nodemailer = require('nodemailer');
 // --- New Database & Session Dependencies ---
 const { Pool } = require('pg'); // For Vercel Postgres
 const { createClient: createRedisClient } = require('redis'); // For Vercel KV
-const RedisStore = require("connect-redis"); // Session store adapter
+// server.js, line 30
+const RedisStore = require("connect-redis").default;// Session store adapter
 
 // --- File Upload & Blob Storage Dependencies ---
 const multerLib = require('multer');
