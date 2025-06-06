@@ -1,4 +1,4 @@
-  "dependencies": {
+"dependencies": {
     "@vercel/blob": "^0.23.4",
     "bcrypt": "^5.1.1",
     "connect-redis": "^7.1.1",
@@ -10,4 +10,4 @@
     "nodemailer": "^6.9.13",
     "pg": "^8.11.5",
     "redis": "^4.6.13"
-  }
+}
