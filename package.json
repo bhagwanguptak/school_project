@@ -1,28 +1,13 @@
-{
-  "name": "school_project",
-  "version": "1.0.0",
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "bcrypt": "^6.0.0",
-    "@vercel/blob": "^1.1.1",
-    "body-parser": "^2.2.0",
+    "@vercel/blob": "^0.23.4",
+    "bcrypt": "^5.1.1",
+    "connect-redis": "^7.1.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "express-session": "^1.18.1",
-    "multer": "^2.0.0",
-    "nodemailer": "^7.0.3",
-    "sqlite3": "^5.1.7",
-	"connect-redis": "^8.1.0",
-	"pg": "^8.16.0",
-    "redis": "^5.5.6"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.13",
+    "pg": "^8.11.5",
+    "redis": "^4.6.13"
   }
-}

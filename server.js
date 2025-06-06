@@ -4,7 +4,7 @@
 const dotenv = require('dotenv');
 const path = require('path');
 const express = require('express');
-const bodyParser = require('body-parser');
+//const bodyParser = require('body-parser');
 // server.js, line 18
 const cors = require('cors');
 const session = require('express-session');
@@ -79,8 +79,8 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
 
 // --- Middlewares ---
 app.use(cors());
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
